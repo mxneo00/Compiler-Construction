@@ -44,7 +44,7 @@ public class Lexer {
             if (Character.isLetter(c)) {
                 int startColumn = column;
                 StringBuilder sb = new StringBuilder();
-                while ( i < source.length() && Character.isLetterOrDigit(c)) {
+                while ( i < source.length() && Character.isLetterOrDigit(source.charAt(i))) {
                     sb.append(source.charAt(i));
                     i++;
                     column++;
@@ -72,15 +72,61 @@ public class Lexer {
             int startColumn = column;
             char next = (i + 1 < source.length()) ? source.charAt(i + 1) : '\0';
             switch (c) {
-                case '+': tokens.add(Token.eof(TokenType.PLUS, line, startColumn)); break;
-                case '-': tokens.add(Token.eof(TokenType.MINUS, line, startColumn)); break;
-                case '*': tokens.add(Token.eof(TokenType.STAR, line, startColumn)); break;
-                case '/': tokens.add(Token.eof(TokenType.SLASH, line, startColumn)); break;
-                case '(': tokens.add(Token.eof(TokenType.LPAREN, line, startColumn)); break;
-                case ')': tokens.add(Token.eof(TokenType.RPAREN, line, startColumn)); break;
-                case '{': tokens.add(Token.eof(TokenType.LBRACE, line, startColumn)); break;
-                case '}': tokens.add(Token.eof(TokenType.RBRACE, line, startColumn)); break;
-                case ';': tokens.add(Token.eof(TokenType.SEMICOLON, line, startColumn)); break;
+                case '+': 
+                    tokens.add(Token.eof(TokenType.PLUS, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '-': 
+                    tokens.add(Token.eof(TokenType.MINUS, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '*': 
+                    tokens.add(Token.eof(TokenType.STAR, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '/': 
+                    tokens.add(Token.eof(TokenType.SLASH, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '(': 
+                    tokens.add(Token.eof(TokenType.LPAREN, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case ')': 
+                    tokens.add(Token.eof(TokenType.RPAREN, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '{': 
+                    tokens.add(Token.eof(TokenType.LBRACE, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case '}': 
+                    tokens.add(Token.eof(TokenType.RBRACE, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case ';': 
+                    tokens.add(Token.eof(TokenType.SEMICOLON, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case ',': 
+                    tokens.add(Token.eof(TokenType.COMMA, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
+                case ':': 
+                    tokens.add(Token.eof(TokenType.COLON, line, startColumn)); 
+                    i++;
+                    column++;
+                    break;
                 case '=':
                     if (next == '=') {
                         tokens.add(Token.eof(TokenType.EQEQ, line, startColumn));
@@ -89,6 +135,41 @@ public class Lexer {
                     } else {
                         tokens.add(Token.eof(TokenType.EQ, line, startColumn));
                     }
+                    i++;
+                    column++;
+                    break;
+                case '<':
+                    if (next == '=') {
+                        tokens.add(Token.eof(TokenType.LEQ, line, startColumn));
+                        i++;
+                        column++;
+                    } else {
+                        tokens.add(Token.eof(TokenType.LT, line, startColumn));
+                    }
+                    i++;
+                    column++;
+                    break;
+                case '>':
+                    if (next == '=') {
+                        tokens.add(Token.eof(TokenType.GEQ, line, startColumn));
+                        i++;
+                        column++;
+                    } else {
+                        tokens.add(Token.eof(TokenType.GT, line, startColumn));
+                    }
+                    i++;
+                    column++;
+                    break;
+                case '&':
+                    if (next == '&') {
+                        tokens.add(Token.eof(TokenType.AND, line, startColumn));
+                        i++;
+                        column++;
+                    } else {
+                        throw new RuntimeException("Unexpected character: " + c + " at " + line + ":" + column);
+                    }
+                    i++;
+                    column++;
                     break;
                 case '!':
                     if (next == '=') {
@@ -98,12 +179,25 @@ public class Lexer {
                     } else {
                         throw new RuntimeException("Unexpected character: " + c + " at " + line + ":" + column);
                     }
+                    i++;
+                    column++;
+                    break;
+                case '|':
+                    if (next == '|') {
+                        tokens.add(Token.eof(TokenType.OR, line, startColumn));
+                        i++;
+                        column++;
+                    } else {
+                        throw new RuntimeException("Unexpected character: " + c + " at " + line + ":" + column);
+                    }
+                    i++;
+                    column++;
                     break;
                 default:
                     throw new RuntimeException("Unexpected character: " + c + " at " + line + ":" + column);
             }
         }
-        tokens.add(Token.eof(line, column));
+        tokens.add(Token.eof(TokenType.EOF, line, column));
         return tokens;
     }
 }

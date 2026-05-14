@@ -1,15 +1,22 @@
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub enum TokenType { 
-    Ident(String),
-    Number(i64),
-    LParen,
-    RParen,
-    Plus,
-    Print,
+    // keywords
+    Let, Fun, Return, If, Else, While,
+    Print, IntKw, BoolKw, True, False,
+    // two-char ops
+    EqEq, BangEq, Le, Ge, And, Or,
+    // single-char ops & punct
+    Plus, Minus, Star, Slash,
+    Lt, Gt, Eq, Bang,
+    LParen, RParen, LBrace, RBrace,
+    Colon, Semi, Comma,
+    // pattern-matched
+    Ident(String), Number(i32),
+    // synthetic
     Eof,
 }
 
-#[derive(Debug)]
+#[derive(Debug, Clone)]
 pub struct Token {
     pub token_type: TokenType,
     pub line: usize,
@@ -23,6 +30,20 @@ pub fn tokenize(input: &str) -> Vec<Token> {
     let mut line = 1usize;
     let mut column = 1usize;
 
+    let keywords = [
+        ("print", TokenType::Print),
+        ("let", TokenType::Let),
+        ("while", TokenType::While),
+        ("int", TokenType::IntKw),
+        ("bool", TokenType::BoolKw),
+        ("true", TokenType::True),
+        ("false", TokenType::False),
+        ("fun", TokenType::Fun),
+        ("return", TokenType::Return),
+        ("if", TokenType::If),
+        ("else", TokenType::Else),
+    ];
+    
     while let Some(&c) = chars.peek() {
         if c.is_whitespace() {
             chars.next();
@@ -49,11 +70,11 @@ pub fn tokenize(input: &str) -> Vec<Token> {
                 }
             }
 
-            let token_type = if word == "print" {
-                TokenType::Print
-            } else {
-                TokenType::Ident(word.clone())
-            };
+            let token_type = keywords
+                .iter()
+                .find(|(kw, _)| *kw == word)
+                .map(|(_, tt)| tt.clone())
+                .unwrap_or(TokenType::Ident(word.clone()));
 
             let value =  match token_type {
                 TokenType::Ident(_) => Some(word),
@@ -93,10 +114,61 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         }
 
         let start_column = column;
-        let token_type = match c {
-            '(' => TokenType::LParen,
-            ')' => TokenType::RParen,
-            '+' => TokenType::Plus,
+        let next_char = chars.clone().nth(1);
+        let (token_type, consume_second) = match c {
+            '(' => (TokenType::LParen, false),
+            ')' => (TokenType::RParen, false),
+            '+' => (TokenType::Plus, false),
+            '-' => (TokenType::Minus, false),
+            '*' => (TokenType::Star, false),
+            '/' => (TokenType::Slash, false),
+            '=' => {
+                if next_char == Some('=') {
+                    (TokenType::EqEq, true)
+                } else {
+                    (TokenType::Eq, false)
+                }
+            }
+            ',' => (TokenType::Comma, false),
+            ';' => (TokenType::Semi, false),
+            ':' => (TokenType::Colon, false),
+            '<' => {
+                if next_char == Some('=') {
+                    (TokenType::Le, true)
+                } else {
+                    (TokenType::Lt, false)
+                }
+            }
+            '>' => {
+                if next_char == Some('=') {
+                    (TokenType::Ge, true)
+                } else {
+                    (TokenType::Gt, false)
+                }
+            }
+            '!' => {
+                if next_char == Some('=') {
+                    (TokenType::BangEq, true)
+                } else {
+                    (TokenType::Bang, false)
+                }
+            }
+            '&' => {
+                if next_char == Some('&') {
+                    (TokenType::And, true)
+                } else {
+                    panic!("Unexpected character: & (did you mean &&?)")
+                }
+            }
+            '|' => {
+                if next_char == Some('|') {
+                    (TokenType::Or, true)
+                } else {
+                    panic!("Unexpected character: | (did you mean ||?)")
+                }
+            }
+            '{' => (TokenType::LBrace, false),
+            '}' => (TokenType::RBrace, false),
             _ => panic!("Unexpected character: {}", c),
         };
 
@@ -108,6 +180,10 @@ pub fn tokenize(input: &str) -> Vec<Token> {
         });
         chars.next();
         column += 1;
+        if consume_second {
+            chars.next();
+            column += 1;
+        }
     }
 
     tokens.push(Token {

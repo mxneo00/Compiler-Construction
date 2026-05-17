@@ -1,4 +1,5 @@
 mod lexer;
+mod parser;
 use std::{env, fs, process};
 
 fn token_type_name(token_type: &lexer::TokenType) -> &'static str {
@@ -49,17 +50,7 @@ fn token_value(token: &lexer::Token) -> String {
     }
 }
 
-fn main() {
-    let args: Vec<String> = env::args().collect();
-    if args.len() != 2 {
-        eprintln!("Usage: minilang <filename>");
-        process::exit(1);
-    }
-
-    let filename = &args[1];
-    let contents = fs::read_to_string(filename).expect("Could not read file");
-    let tokens = lexer::tokenize(&contents);
-
+fn print_tokens(tokens: &[lexer::Token]) {
     println!("{:<3} {:<8} {:<8} POSITION", "#", "TYPE", "VALUE");
     for (i, token) in tokens.iter().enumerate() {
         println!(
@@ -71,4 +62,41 @@ fn main() {
             token.column
         );
     }
+}
+
+fn run_parser(tokens: Vec<lexer::Token>) {
+    let mut parser = parser::Parser::new(tokens);
+    match parser.parse() {
+        Ok(ast) => {
+            println!("\nParsed AST:");
+            println!("{:#?}", ast);
+        }
+        Err(e) => {
+            eprintln!("Parse error: {}", e);
+            process::exit(1);
+        }
+    }
+}
+
+fn main() {
+    let args: Vec<String> = env::args().collect();
+    if args.len() != 3 {
+        eprintln!("Usage: minilang <lex|parse> <filename>");
+        process::exit(1);
+    }
+
+    let mode = &args[1].to_lowercase();
+    let filename = &args[2];
+    let contents = fs::read_to_string(filename).expect("Could not read file");
+    let tokens = lexer::tokenize(&contents);
+
+    match mode.as_str() {
+        "lex" => print_tokens(&tokens),
+        "parse" => run_parser(tokens),
+        _ => {
+            eprintln!("Unknown mode: {}. Use 'lex' or 'parse'.", mode);
+            process::exit(1);
+        }
+    }
+
 }

@@ -1,1 +1,1 @@
-print(x+42)
+print(x+42);

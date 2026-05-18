@@ -165,11 +165,7 @@ impl Parser {
             _ => return Err(format!("line {}: expected identifier, got {:?}", name_token.line, name_token.token_type)),
         };
         self.expect(TokenType::Colon)?;
-        let type_token = self.advance();
-        let type_ = match &type_token.token_type {
-            TokenType::Ident(t) => t.clone(),
-            _ => return Err(format!("line {}: expected type identifier, got {:?}", type_token.line, type_token.token_type)),
-        };
+        let type_ = self.parse_type()?;
         self.expect(TokenType::Eq)?;
         let expr = self.parse_expr()?;
         self.expect(TokenType::Semi)?;
@@ -261,11 +257,7 @@ impl Parser {
         }
         self.expect(TokenType::RParen)?;
         self.expect(TokenType::Colon)?;
-        let return_type_token = self.advance();
-        let return_type = match &return_type_token.token_type {
-            TokenType::Ident(t) => Some(t.clone()),
-            _ => return Err(format!("line {}: expected type identifier, got {:?}", return_type_token.line, return_type_token.token_type)),
-        };
+        let return_type = Some(self.parse_type()?);
         self.expect(TokenType::LBrace)?;
         let mut body = Vec::new();
         while !self.check(TokenType::RBrace) && !self.check(TokenType::Eof) {
@@ -282,11 +274,7 @@ impl Parser {
             _ => return Err(format!("line {}: expected identifier, got {:?}", name_token.line, name_token.token_type)),
         };
         self.expect(TokenType::Colon)?;
-        let type_token = self.advance();
-        let type_ = match &type_token.token_type {
-            TokenType::Ident(t) => t.clone(),
-            _ => return Err(format!("line {}: expected type identifier, got {:?}", type_token.line, type_token.token_type)),
-        };
+        let type_ = self.parse_type()?;
         Ok((name, type_))
     }
 
@@ -465,6 +453,16 @@ impl Parser {
                 Ok(expr)
             }
             _ => Err(format!("line {}: unexpected token {:?} ({:?})", tok.line, tok.token_type, tok.value)),
+        }
+    }
+
+    fn parse_type(&mut self) -> Result<String, String> {
+        let type_token = self.advance();
+        match &type_token.token_type {
+            TokenType::Ident(t) => Ok(t.clone()),
+            TokenType::IntKw => Ok("int".to_string()),
+            TokenType::BoolKw => Ok("bool".to_string()),
+            _ => Err(format!("line {}: expected type identifier, got {:?}", type_token.line, type_token.token_type)),
         }
     }
 }

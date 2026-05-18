@@ -6,7 +6,7 @@ while (i < 10) {
     i = i + 1;
 }
 
-print(sum);     // 0 + 1 + 2 + ... + 9 = 45
+print(sum);
 
 let big: bool = sum > 40;
 print(big);

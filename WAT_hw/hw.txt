@@ -1,0 +1,97 @@
+Problem 1: print(42);
+(module
+  ;; print(i32) is supplied by the host (JS, wasmtime, etc.)
+  (import "env" "print" (func $print (param i32)))
+  (global $x (mut i32) (i32.const 0))
+  (func $main (export "main")
+    ;; minilang code starts here
+    i32.const 42                ;; stack: [42]
+    call $print                 ;; stack: []    (pops 42, prints "42")
+  )
+  (start $main)
+)
+
+Problem 2: print(7 + 3);
+(module
+  ;; print(i32) is supplied by the host (JS, wasmtime, etc.)
+  (import "env" "print" (func $print (param i32)))
+  (global $x (mut i32) (i32.const 0))
+  (func $main (export "main")
+    ;; minilang code starts here
+    i32.const 7                 ;; stack: [7]
+    i32.const 3                 ;; stack: [7, 3]
+    i32.add                    ;; stack: [10]      (pops 7 and 3, pushes 7 + 3)
+    call $print                 ;; stack: []        (pops 10, prints "10")
+  )
+  (start $main)
+)
+
+Problem 3: 
+            let x: int = 10;
+            print(x);
+(module
+  ;; print(i32) is supplied by the host (JS, wasmtime, etc.)
+  (import "env" "print" (func $print (param i32)))
+  (global $x (mut i32) (i32.const 0))
+  (func $main (export "main")
+    ;; minilang code starts here
+    i32.const 10            ;; stack: [10]
+    global.set $x           ;; stack: []            (pops 10, stores in x)
+    global.get $x           ;; stack: [10]          (push 10)
+    call $print             ;; stack: []            (prints "10")
+  )
+  (start $main)
+)
+
+Problem 4: 
+            let x: int = 2 + 3 * 4;
+            print(x);
+(module
+  ;; print(i32) is supplied by the host (JS, wasmtime, etc.)
+  (import "env" "print" (func $print (param i32)))
+  (global $x (mut i32) (i32.const 0))
+  (func $main (export "main")
+    ;; minilang code starts here
+    i32.const 2             ;; stack: [2]
+    i32.const 3             ;; stack: [2, 3]
+    i32.const 4             ;; stack: [2, 3, 4]
+    i32.mul                 ;; stack: [2,12]    (pops 3 and 4, pushes 3 * 4)
+    i32.plus                ;; stack: [14]      (pops 2 and 12, pushes 2 + 12)
+    global.set $x           ;; stack: []        (pops 14, stores in x)
+    global.get $x           ;; stack: [14]      (push 14)
+    call $print             ;; stack: []        (pops 20, prints "20")
+  )
+  (start $main)
+)
+
+Problem 5: 
+            let x: int = 0;
+            if (5 > 3) {
+                x = 100;
+            } else {
+                x = 200;
+            }
+            print(x);
+(module
+  ;; print(i32) is supplied by the host (JS, wasmtime, etc.)
+  (import "env" "print" (func $print (param i32)))
+  (global $x (mut i32) (i32.const 0))
+  (func $main (export "main")
+    ;; minilang code starts here
+    i32.const 0             ;; stack: [0]
+    global.set $x           ;; stack: []        (pops 0, stores in x)
+    i32.const 5             ;; stack: [5]
+    i32.const 3             ;; stack: [5, 3]
+    i32.gt_s                ;; stack: [1]       (pops 5 and 3, push 1 (5>3 = true))
+    if                      ;; stack: []        (pops 1)
+        i32.const 100       ;; stack: [100]     
+        global.set $x       ;; stack: []        (pops 100, stores in x)
+    else
+        i32.const 200       ;; stack: [200]     
+        global.set $x       ;; stack: []        (pops 200, stores in x)
+    end
+    global.get $x           ;; stack: [100]     (push 100 since true)
+    call $print             ;; stack: []        (pops 100, prints "100")
+  )
+  (start $main)
+)

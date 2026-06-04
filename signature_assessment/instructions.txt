@@ -1,0 +1,8 @@
+Create separate sets of source code in Java, Python, and Haskell for a myMap function that is passed two parameters: 
+a list of integers and a function that produces some math operation on an integer value. 
+The myMap function maps the function onto the elements in the list and returns a list containing the modified elements.
+
+
+
+Deliverable: Using the template file for each language, add your code for each file and submit here.
+
